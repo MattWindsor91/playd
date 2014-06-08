@@ -4,14 +4,12 @@
  * details.
  */
 
-#define _POSIX_C_SOURCE 200809
-
 extern "C" {
 #ifdef WIN32
 #define inline __inline
 #endif
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
 #ifdef WIN32
 #undef inline
 #endif
@@ -63,7 +61,7 @@ void AudioOutput::CleanupLibraries()
 
 AudioOutput::DeviceList AudioOutput::ListDevices()
 {
-	DeviceList devices = {};
+	DeviceList devices = DeviceList({});
 
 	PaDeviceIndex num_devices = Pa_GetDeviceCount();
 	for (PaDeviceIndex i = 0; i < num_devices; i++) {
