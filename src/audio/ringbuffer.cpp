@@ -101,14 +101,14 @@ size_t RingBuffer::Write(const gsl::span<const std::byte> src)
 	auto write_end_count = std::min(write_count, static_cast<size_t>(bytes_to_end));
 
 	const auto src_end = src_to_write.first(write_end_count);
-	this->w_it = copy(src_end.cbegin(), src_end.cend(), this->w_it);
+	this->w_it = copy(src_end.begin(), src_end.end(), this->w_it);
 
 	// Do we need to loop?  If so, do that.
 	auto write_start_count = write_count - write_end_count;
 	if (0 < write_start_count) {
 		Expects(this->w_it == this->buffer.end());
 		const auto src_start = src_to_write.last(write_start_count);
-		this->w_it = copy(src_start.cbegin(), src_start.cend(), this->buffer.begin());
+		this->w_it = copy(src_start.begin(), src_start.end(), this->buffer.begin());
 		Ensures(this->w_it > this->buffer.begin());
 	}
 

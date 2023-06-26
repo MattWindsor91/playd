@@ -194,7 +194,7 @@ namespace Playd::IO {
         auto id = this->NextConnectionID();
         auto conn = std::make_shared<Connection>(*this, client, this->player, id);
         client->data = static_cast<void *>(conn.get());
-        this->pool[id - 1] = move(conn);
+        this->pool[id - 1] = std::move(conn);
 
         // Begin initial responses
         this->Respond(id, Response(Response::NOREQUEST, Response::Code::OHAI)
@@ -224,8 +224,8 @@ namespace Playd::IO {
         this->free_list.pop_back();
 
         // client_slot should be at least 1, because of the above.
-        assert(0 < id);
-        assert(id <= this->pool.size());
+        Ensures(0 < id);
+        Ensures(id <= this->pool.size());
 
         return id;
     }
@@ -247,7 +247,8 @@ namespace Playd::IO {
     }
 
     void Core::Remove(size_t slot) {
-        assert(0 < slot && slot <= this->pool.size());
+        Expects(0 < slot);
+	Expects(slot <= this->pool.size());
 
         // Don't remove if it's already a nullptr, because we'd end up with the
         // slot on the free list twice.
@@ -256,7 +257,7 @@ namespace Playd::IO {
             this->free_list.push_back(slot);
         }
 
-        assert(!this->pool.at(slot - 1));
+        Ensures(!this->pool.at(slot - 1));
     }
 
     void Core::UpdatePlayer() {
@@ -303,9 +304,9 @@ namespace Playd::IO {
 
         // Copy the connection by value, so that there's at least one
         // active reference to it throughout.
-        for (const auto c : this->pool) {
-            if (c) c->Respond(response);
-        }
+	std::for_each(this->pool.cbegin(), this->pool.cend(), [=] (auto c) {
+	  if (c) c->Respond(response);
+	});
     }
 
     void Core::Unicast(size_t id, const Response &response) const {
