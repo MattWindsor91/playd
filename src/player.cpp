@@ -64,7 +64,7 @@ namespace Playd {
 // Commands
 //
 
-    Response Player::Dump(size_t id, Response::Tag tag) const {
+    Response Player::Dump(ClientId id, Response::Tag tag) const {
         if (this->dead) return PlayerDead(tag);
 
         this->DumpState(id, tag);
@@ -73,7 +73,7 @@ namespace Playd {
         return Response::Success(tag);
     }
 
-    void Player::DumpFileInfo(size_t id, Response::Tag tag) const {
+    void Player::DumpFileInfo(ClientId id, Response::Tag tag) const {
         // This information won't exist if there is no file.
         if (this->file->CurrentState() == Audio::Audio::State::NONE) return;
 
@@ -100,7 +100,7 @@ namespace Playd {
         assert(this->file != nullptr);
         this->file = std::make_unique<Audio::NullAudio>();
 
-        this->DumpState(0, tag);
+        this->DumpState(BROADCAST, tag);
 
         return Response::Success(tag);
     }
@@ -112,7 +112,7 @@ namespace Playd {
     	
         // Let upstream know that the file ended by itself.
         // This is needed for auto-advancing playlists, etc.
-        this->Respond(0, Response(Response::NOREQUEST, Response::Code::END));
+        this->Respond(BROADCAST, Response(Response::NOREQUEST, Response::Code::END));
 
         this->SetPlaying(tag, false);
 
@@ -151,12 +151,12 @@ namespace Playd {
         assert(this->file != nullptr);
         this->last_pos = std::chrono::seconds{0};
 
-        // A load will change all of the player's state in one go,
-        // so just send a Dump() instead of writing out all of the responses
+        // A load will change all the player's state in one go,
+        // so just send a Dump() instead of writing out all the responses
         // here.
         // Don't take the response from here, though, because it has the wrong
         // tag.
-        this->Dump(0, Response::NOREQUEST);
+        std::ignore = this->Dump(ClientId::BROADCAST, Response::NOREQUEST);
 
         return Response::Success(tag);
     }
@@ -209,7 +209,7 @@ namespace Playd {
             return Response::Invalid(tag, e.Message());
         }
 
-        this->DumpState(0, Response::NOREQUEST);
+        this->DumpState(BROADCAST, Response::NOREQUEST);
 
         // It can be helpful to know precisely where the player changed its
         // playing state, and it doesn't really harm us if we're overly chatty
@@ -265,7 +265,7 @@ namespace Playd {
         this->BroadcastPos(tag, pos);
     }
 
-    void Player::DumpState(size_t id, Response::Tag tag) const {
+    void Player::DumpState(ClientId id, Response::Tag tag) const {
         Response::Code code = StateResponseCode();
 
         this->Respond(id, Response(tag, code));
@@ -285,11 +285,11 @@ namespace Playd {
         return Response::Code::EJECT;
     }
 
-    void Player::Respond(int id, const Response &rs) const {
+    void Player::Respond(ClientId id, const Response &rs) const {
         if (this->io != nullptr) this->io->Respond(id, rs);
     }
 
-    void Player::AnnounceTimestamp(Response::Code code, int id, Response::Tag tag,
+    void Player::AnnounceTimestamp(Response::Code code, ClientId id, Response::Tag tag,
                                    std::chrono::microseconds ts) const {
         this->Respond(id, Response(tag, code)
                 .AddArg(std::to_string(ts.count())));
@@ -306,7 +306,7 @@ namespace Playd {
         // This ensures we don't broadcast too often:
         // see CanBroadcastPos.
         this->last_pos = std::chrono::duration_cast<std::chrono::seconds>(pos);
-        this->AnnounceTimestamp(Response::Code::POS, 0, tag, pos);
+        this->AnnounceTimestamp(Response::Code::POS, BROADCAST, tag, pos);
     }
 
     std::unique_ptr<Audio::Audio> Player::LoadRaw(std::string_view path) const {

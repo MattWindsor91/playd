@@ -12,7 +12,6 @@
 #include <chrono>
 #include <gsl/gsl>
 
-#include "../errors.h"
 #include "../messages.h"
 #include "sink.h"
 #include "source.h"

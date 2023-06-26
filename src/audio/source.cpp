@@ -9,8 +9,6 @@
 
 #include "source.h"
 
-#include <cstdint>
-
 #include "sample_format.h"
 
 namespace Playd::Audio

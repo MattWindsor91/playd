@@ -91,7 +91,7 @@ namespace Playd::IO {
          * operation.
          * @param id The ID of the connection to remove.
          */
-        void Remove(size_t id);
+        void Remove(ClientId id);
 
         /**
          * Performs a player update cycle.
@@ -100,7 +100,7 @@ namespace Playd::IO {
          */
         void UpdatePlayer();
 
-        void Respond(size_t id, const Response &response) const override;
+        void Respond(ClientId id, const Response &response) const override;
 
         /// Shuts down the IoCore by terminating all IO loop tasks.
         void Shutdown();
@@ -110,9 +110,9 @@ namespace Playd::IO {
         static const uint16_t PLAYER_UPDATE_PERIOD;
 
         uv_loop_t *loop;    ///< The loop this IoCore is using.
-        uv_signal_t sigint; ///< The libuv handle for the Ctrl-C signal.
-        uv_tcp_t server;    ///< The libuv handle for the TCP server.
-        uv_timer_t updater; ///< The libuv handle for the update timer.
+        uv_signal_t sigint{}; ///< The libuv handle for the Ctrl-C signal.
+        uv_tcp_t server{};    ///< The libuv handle for the TCP server.
+        uv_timer_t updater{}; ///< The libuv handle for the update timer.
 
         Player &player; ///< The player.
 
@@ -121,7 +121,7 @@ namespace Playd::IO {
 
         /// A list of free 1-indexed slots inside pool.
         /// These slots may be re-used instead of creating a new slot.
-        std::vector<size_t> free_list;
+        std::vector<ClientId> free_list;
 
         /**
          * Initialises a TCP acceptor on the given address and port.
@@ -153,7 +153,7 @@ namespace Playd::IO {
          * guaranteed not to match any currently assigned IDs.
          * @return size_t A fresh ID for use.
          */
-        size_t NextConnectionID();
+        ClientId NextConnectionID();
 
         /**
          * Adds a new connection slot to the connection pool.
@@ -179,7 +179,13 @@ namespace Playd::IO {
          * @param id The ID of the recipient connection.
          * @param response The response to broadcast.
          */
-        void Unicast(size_t id, const Response &response) const;
+        void Unicast(ClientId id, const Response &response) const;
+
+	/**
+	 * Sends the initial responses to the given connection.
+	 * @param id The ID of the recipient connection.
+	 */
+	void SendInitialResponses(ClientId id) const;
     };
 
     /**
@@ -198,7 +204,7 @@ namespace Playd::IO {
          * @param player The player to which read commands should be sent.
          * @param id The ID of this Connection in the IoCore.
          */
-        Connection(Core &parent, uv_tcp_t *tcp, Player &player, size_t id);
+        Connection(Core &parent, uv_tcp_t *tcp, Player &player, ClientId id);
 
         /**
          * Destructs a Connection.
@@ -261,7 +267,7 @@ namespace Playd::IO {
         Player &player;
 
         /// The Connection's ID in the connection pool.
-        size_t id;
+        ClientId id;
 
         /**
          * Handles a tokenised command line.

@@ -10,8 +10,6 @@
 #include <locale>
 #include <gsl/gsl>
 
-#include "response.h"
-
 #include "tokeniser.h"
 
 namespace Playd {

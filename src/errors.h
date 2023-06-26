@@ -23,13 +23,13 @@ public:
 	 * Constructs an Error.
 	 * @param msg The human-readable message of the error.
 	 */
-	Error(std::string_view msg);
+	explicit Error(std::string_view msg);
 
 	/**
 	 * The human-readable message for this error.
 	 * @return A reference to the string describing this Error.
 	 */
-	std::string_view Message() const;
+	[[nodiscard]] std::string_view Message() const;
 
 private:
 	std::string message; ///< The human-readable message for this Error.
@@ -49,7 +49,7 @@ public:
 	 * Constructs an ConfigError.
 	 * @param msg The human-readable message of the error.
 	 */
-	ConfigError(const std::string_view msg) : Error(msg)
+	explicit ConfigError(const std::string_view msg) : Error(msg)
 	{
 	}
 };
@@ -64,7 +64,7 @@ public:
 	 * Constructs an InternalError.
 	 * @param msg The human-readable message of the error.
 	 */
-	InternalError(const std::string_view msg) : Error(msg)
+	explicit InternalError(const std::string_view msg) : Error(msg)
 	{
 	}
 };
@@ -79,7 +79,7 @@ public:
 	 * Constructs a FileError.
 	 * @param msg The human-readable message of the error.
 	 */
-	FileError(const std::string_view msg) : Error(msg)
+	explicit FileError(const std::string_view msg) : Error(msg)
 	{
 	}
 };
@@ -94,7 +94,7 @@ public:
 	 * Constructs a SeekError.
 	 * @param msg The human-readable message of the error.
 	 */
-	SeekError(const std::string_view msg) : Error(msg)
+	explicit SeekError(const std::string_view msg) : Error(msg)
 	{
 	}
 };
@@ -109,7 +109,7 @@ public:
 	 * Constructs a NetError.
 	 * @param msg The human-readable message of the error.
 	 */
-	NetError(const std::string_view msg) : Error(msg)
+	explicit NetError(const std::string_view msg) : Error(msg)
 	{
 	}
 };
@@ -124,7 +124,7 @@ public:
 	 * Constructs an NullAudioError.
 	 * @param msg The human-readable message of the error.
 	 */
-	NullAudioError(const std::string_view msg) : Error(msg)
+	explicit NullAudioError(const std::string_view msg) : Error(msg)
 	{
 	}
 };
@@ -175,4 +175,4 @@ private:
 	                        /// issues).
 };
 
-#endif // PLAYD_ERRORS_HPP
+#endif // PLAYD_ERRORS_H

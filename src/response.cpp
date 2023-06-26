@@ -85,7 +85,7 @@ namespace Playd {
 // ResponseSink
 //
 
-    void ResponseSink::Respond(size_t, const Response &) const {
+    void ResponseSink::Respond(ClientId, const Response &) const {
         // By default, do nothing.
     }
 

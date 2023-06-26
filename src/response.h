@@ -21,6 +21,12 @@
 
 namespace Playd {
 
+/// Type of client IDs.
+    enum ClientId : size_t {
+	/// Client ID reserved for broadcasts.
+	BROADCAST = 0,
+    };
+
 /// A response.
     class Response {
     public:
@@ -71,7 +77,7 @@ namespace Playd {
          * Pack()ing does not alter the Response, which may be Pack()ed again.
          * @return The BAPS3 message, sans newline, ready to send.
          */
-        std::string Pack() const;
+        [[nodiscard]] std::string Pack() const;
 
         /**
          * Shortcut for constructing a final response to a successful request.
@@ -124,7 +130,7 @@ namespace Playd {
          *   Use 0 for broadcasts.
          * @param response The Response to output.
          */
-        virtual void Respond(size_t id, const Response &response) const;
+        virtual void Respond(ClientId id, const Response &response) const;
     };
 
 } // namespace playd

@@ -14,7 +14,6 @@
 #include <cassert>
 #include <string>
 
-#include "../errors.h"
 #include "SDL.h"
 #include "ringbuffer.h"
 #include "sample_format.h"
@@ -70,7 +69,7 @@ SDLSink::SDLSink(const Audio::Source &source, int device_id)
 
 	SDL_AudioSpec want;
 	SDL_zero(want);
-	want.freq = source.SampleRate();
+	want.freq = gsl::narrow<int>(source.SampleRate());
 	want.format = formats[static_cast<int>(source.OutputSampleFormat())];
 	want.channels = source.ChannelCount();
 	want.callback = &SDLCallback;

@@ -86,13 +86,13 @@ public:
 	 * @return The filename of this current file.
 	 * @exception NoAudioError if the current state is NONE.
 	 */
-	virtual std::string_view File() const = 0;
+	[[nodiscard]] virtual std::string_view File() const = 0;
 
 	/**
 	 * The state of this Audio.
 	 * @return this Audio's current state.
 	 */
-	virtual State CurrentState() const = 0;
+	[[nodiscard]] virtual State CurrentState() const = 0;
 
 	/**
 	 * This Audio's current position.
@@ -104,7 +104,7 @@ public:
 	 * @exception NoAudioError if the current state is NONE.
 	 * @see Seek
 	 */
-	virtual std::chrono::microseconds Position() const = 0;
+	[[nodiscard]] virtual std::chrono::microseconds Position() const = 0;
 
 	/**
 	 * This Audio's length.
@@ -113,7 +113,7 @@ public:
 	 * @exception NoAudioError if the current state is NONE.
 	 * @see Seek
 	 */
-	virtual std::chrono::microseconds Length() const = 0;
+	[[nodiscard]] virtual std::chrono::microseconds Length() const = 0;
 };
 
 /**
@@ -130,7 +130,7 @@ class NullAudio : public Audio
 public:
 	Audio::State Update() override;
 
-	Audio::State CurrentState() const override;
+	[[nodiscard]] Audio::State CurrentState() const override;
 
 	// The following all raise an exception:
 
@@ -138,17 +138,17 @@ public:
 
 	void SetPosition(std::chrono::microseconds position) override;
 
-	std::chrono::microseconds Position() const override;
+	[[nodiscard]] std::chrono::microseconds Position() const override;
 
-	std::chrono::microseconds Length() const override;
+	[[nodiscard]] std::chrono::microseconds Length() const override;
 
-	std::string_view File() const override;
+	[[nodiscard]] std::string_view File() const override;
 };
 
 /**
  * A concrete implementation of Audio as a 'pipe'.
  *
- * Basic_audio is comprised of a 'source', which decodes frames from a
+ * BasicAudio is comprised of a 'source', which decodes frames from a
  * file, and a 'sink', which plays out the decoded frames.  Updating
  * consists of shifting frames from the source to the sink.
  *
@@ -169,17 +169,17 @@ public:
 
 	Audio::State Update() override;
 
-	std::string_view File() const override;
+	[[nodiscard]] std::string_view File() const override;
 
 	void SetPlaying(bool playing) override;
 
-	Audio::State CurrentState() const override;
+	[[nodiscard]] Audio::State CurrentState() const override;
 
 	void SetPosition(std::chrono::microseconds position) override;
 
-	std::chrono::microseconds Position() const override;
+	[[nodiscard]] std::chrono::microseconds Position() const override;
 
-	std::chrono::microseconds Length() const override;
+	[[nodiscard]] std::chrono::microseconds Length() const override;
 
 private:
 	/// The source of audio data.
@@ -210,7 +210,7 @@ private:
 	 * samples in the frame have been fed to the ringbuffer.
 	 * @return True if the frame is finished; false otherwise.
 	 */
-	bool FrameFinished() const;
+	[[nodiscard]] bool FrameFinished() const;
 
 	/// Transfers as much of the current frame as possible to the sink.
 	void TransferFrame();

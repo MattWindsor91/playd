@@ -38,6 +38,7 @@ typedef ptrdiff_t ssize_t;
 #include "io.h"
 
 namespace Playd::IO {
+    static_assert(BROADCAST == 0, "current Core logic assumes BROADCAST=0");
 
     const std::uint16_t Core::PLAYER_UPDATE_PERIOD = 5; // ms
 
@@ -172,7 +173,7 @@ namespace Playd::IO {
 
         uv_run(this->loop, UV_RUN_DEFAULT);
 
-        // We presume all of the open handles have been closed in Shutdown().
+        // We presume all open handles have been closed in Shutdown().
         // We need only close the loop.
         uv_loop_close(this->loop);
     }
@@ -195,23 +196,24 @@ namespace Playd::IO {
         auto conn = std::make_shared<Connection>(*this, client, this->player, id);
         client->data = static_cast<void *>(conn.get());
         this->pool[id - 1] = std::move(conn);
+	SendInitialResponses(id);
 
-        // Begin initial responses
-        this->Respond(id, Response(Response::NOREQUEST, Response::Code::OHAI)
-                .AddArg(std::to_string(id))
-                .AddArg(MSG_OHAI_BIFROST)
-                .AddArg(MSG_OHAI_PLAYD));
-        this->Respond(id, Response(Response::NOREQUEST, Response::Code::IAMA)
-                .AddArg("player/file"));
-        this->player.Dump(id, Response::NOREQUEST);
-        this->Respond(id, Response::Success(Response::NOREQUEST));
-        // End initial responses
-
-        uv_read_start(reinterpret_cast<uv_stream_t *>(client), UvAlloc,
+	uv_read_start(reinterpret_cast<uv_stream_t *>(client), UvAlloc,
                       UvReadCallback);
     }
 
-    size_t Core::NextConnectionID() {
+    void Core::SendInitialResponses(ClientId id) const {
+	Respond(id, Response(Response::NOREQUEST, Response::Code::OHAI)
+		.AddArg(std::to_string(id))
+		.AddArg(MSG_OHAI_BIFROST)
+		.AddArg(MSG_OHAI_PLAYD));
+	Respond(id, Response(Response::NOREQUEST, Response::Code::IAMA)
+		.AddArg("player/file"));
+	std::ignore = player.Dump(id, Response::NOREQUEST);
+	Respond(id, Response::Success(Response::NOREQUEST));
+    }
+
+    ClientId Core::NextConnectionID() {
         // We'll want to try and use an existing, empty ID in the connection
         // pool.  If there aren't any (we've exceeded the maximum-so-far number
         // of simultaneous connections), we expand the pool.
@@ -220,11 +222,10 @@ namespace Playd::IO {
 
         // Acquire some free ID, and ensure that the ID cannot be re-used until
         // replaced onto the free list by the connection's removal.
-        size_t id = this->free_list.back();
+        ClientId id = this->free_list.back();
         this->free_list.pop_back();
 
-        // client_slot should be at least 1, because of the above.
-        Ensures(0 < id);
+        Ensures(id != BROADCAST);
         Ensures(id <= this->pool.size());
 
         return id;
@@ -243,10 +244,11 @@ namespace Playd::IO {
 
         this->pool.emplace_back(nullptr);
         // This isn't an off-by-one error; slots index from 1.
-        this->free_list.push_back(this->pool.size());
+	auto new_id = static_cast<ClientId>(this->pool.size());
+        this->free_list.push_back(new_id);
     }
 
-    void Core::Remove(size_t slot) {
+    void Core::Remove(ClientId slot) {
         Expects(0 < slot);
 	Expects(slot <= this->pool.size());
 
@@ -289,10 +291,10 @@ namespace Playd::IO {
         uv_close(reinterpret_cast<uv_handle_t *>(&this->sigint), nullptr);
     }
 
-    void Core::Respond(size_t id, const Response &response) const {
+    void Core::Respond(ClientId id, const Response &response) const {
         if (this->pool.empty()) return;
 
-        if (id == 0) {
+        if (id == BROADCAST) {
             this->Broadcast(response);
         } else {
             this->Unicast(id, response);
@@ -309,7 +311,7 @@ namespace Playd::IO {
 	});
     }
 
-    void Core::Unicast(size_t id, const Response &response) const {
+    void Core::Unicast(ClientId id, const Response &response) const {
         assert(0 < id && id <= this->pool.size());
 
         Debug() << "unicast @" << std::to_string(id) << ":" << response.Pack()
@@ -376,7 +378,7 @@ namespace Playd::IO {
 // Connection
 //
 
-    Connection::Connection(Core &parent, uv_tcp_t *tcp, Player &player, size_t id)
+    Connection::Connection(Core &parent, uv_tcp_t *tcp, Player &player, ClientId id)
             : parent(parent), tcp(tcp), tokeniser(), player(player), id(id) {
         Debug() << "Opening connection from" << Name() << std::endl;
     }
@@ -416,7 +418,7 @@ namespace Playd::IO {
 
         // Using this instead of struct sockaddr is advised by the libuv docs,
         // for IPv6 compatibility.
-        struct sockaddr_storage s;
+        struct sockaddr_storage s{};
         auto sp = (struct sockaddr *) &s;
 
         // Turns out if you don't do this, Windows (and only Windows?) is upset.
@@ -485,7 +487,7 @@ namespace Playd::IO {
         if (cmd.size() <= 1) return Response::Invalid(tag, MSG_CMD_SHORT);
 
         // The next words are the actual command, and any other arguments.
-        const auto word = cmd[1];
+        const auto& word = cmd[1];
         const auto nargs = cmd.size() - 2;
 
         if (nargs == 0) {

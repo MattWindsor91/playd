@@ -25,7 +25,6 @@
 #include "response.h"
 
 namespace Playd {
-
 /**
  * A Player contains a loaded audio file and a command API for manipulating it.
  * @see Audio
@@ -95,7 +94,7 @@ namespace Playd {
          *   For unsolicited dumps, use Response::NOREQUEST.
          * @return The result of dumping, which is always success.
          */
-        Response Dump(size_t id, Response::Tag tag) const;
+        [[nodiscard]] Response Dump(ClientId id, Response::Tag tag) const;
 
         /**
          * Ejects the current loaded song, if any.
@@ -156,7 +155,7 @@ namespace Playd {
          *   See http://www.cplusplus.com/reference/string/stoull/#exceptions
          * @exception std::invalid_argument
          *   See http://www.cplusplus.com/reference/string/stoull/#exceptions
-         * @exception Seek_error
+         * @exception SeekError
          *   Raised if checks beyond those done by stoull fail.
          */
         static std::chrono::microseconds PosParse(std::string_view pos_str);
@@ -183,7 +182,7 @@ namespace Playd {
          *
          * @see DumpFileInfo
          */
-        void DumpState(size_t id, Response::Tag tag) const;
+        void DumpState(ClientId id, Response::Tag tag) const;
 
         /**
          * Emits responses for the current audio file's metrics to the sink.
@@ -195,12 +194,12 @@ namespace Playd {
          *
          * @see DumpState
          */
-        void DumpFileInfo(size_t id, Response::Tag tag) const;
+        void DumpFileInfo(ClientId id, Response::Tag tag) const;
 
         /**
          * @return The player's current state as a response code.
          */
-        Response::Code StateResponseCode() const;
+        [[nodiscard]] Response::Code StateResponseCode() const;
 
         /**
          * Outputs a response, if there is a ResponseSink attached.
@@ -210,7 +209,7 @@ namespace Playd {
          *   Use 0 for broadcasts.
          * @param response The Response to output.
          */
-        void Respond(int id, const Response &rs) const;
+        void Respond(ClientId id, const Response &rs) const;
 
         /**
          * Sends a timestamp response.
@@ -220,7 +219,7 @@ namespace Playd {
          * @param tag The tag to send with the response.
          * @param ts The value of the response, in microseconds.
          */
-        void AnnounceTimestamp(Response::Code code, int id, Response::Tag tag, std::chrono::microseconds ts) const;
+        void AnnounceTimestamp(Response::Code code, ClientId id, Response::Tag tag, std::chrono::microseconds ts) const;
 
         /**
          * Determines whether we can broadcast a POS response.
@@ -232,7 +231,7 @@ namespace Playd {
          * @param pos The value of the POS response, in microseconds.
          * @return Whether it is polite to broadcast POS.
          */
-        bool CanBroadcastPos(std::chrono::microseconds pos) const;
+        [[nodiscard]] bool CanBroadcastPos(std::chrono::microseconds pos) const;
 
         /**
          * Broadcasts a POS response.
@@ -256,7 +255,7 @@ namespace Playd {
          * @param path The path to a file.
          * @return A unique pointer to the Audio for that file.
          */
-        std::unique_ptr<Audio::Audio> LoadRaw(std::string_view path) const;
+        [[nodiscard]] std::unique_ptr<Audio::Audio> LoadRaw(std::string_view path) const;
 
         /**
          * Loads a file, creating an AudioSource.
@@ -265,7 +264,7 @@ namespace Playd {
          *   and suitable Audio_source was found).
          * @see Load
          */
-        std::unique_ptr<Audio::Source> LoadSource(std::string_view path) const;
+        [[nodiscard]] std::unique_ptr<Audio::Source> LoadSource(std::string_view path) const;
     };
 
 } // namespace Playd
