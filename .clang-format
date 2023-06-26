@@ -1,14 +1,14 @@
 ---
 BasedOnStyle: Google
 
-AllowShortBlocksOnASingleLine:       false
+AllowShortBlocksOnASingleLine:       Never
 AllowShortFunctionsOnASingleLine:    None
 AllowShortIfStatementsOnASingleLine: Always
 BreakBeforeBraces:                   Linux
 Cpp11BracedListStyle:                true
 Language:                            Cpp
 PointerAlignment:                    Right
-Standard:                            Cpp11
+Standard:                            c++20
 UseTab:                              ForIndentation
 
 ForEachMacros: ['SCENARIO', 'GIVEN', 'WHEN', 'THEN']

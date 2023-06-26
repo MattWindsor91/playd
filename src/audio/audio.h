@@ -199,15 +199,14 @@ private:
 
 	/**
 	 * Decodes a new frame, if the current frame is empty.
-	 * @return True if more frames are available to decode; false
-	 *   otherwise.
+	 * @return True if more frames are available to decode; false otherwise.
 	 */
 	bool DecodeIfFrameEmpty();
 
 	/**
 	 * Returns whether the current frame has been finished.
-	 * If this is true, then either the frame is empty, or all of the
-	 * samples in the frame have been fed to the ringbuffer.
+	 * If this is true, then either the frame is empty, or all of the samples in the frame have been fed to the
+	 * ringbuffer.
 	 * @return True if the frame is finished; false otherwise.
 	 */
 	[[nodiscard]] bool FrameFinished() const;

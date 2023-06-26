@@ -12,7 +12,8 @@
 
 #include "response.h"
 
-namespace Playd {
+namespace Playd
+{
 
 /**
  * A string tokeniser.
@@ -81,11 +82,11 @@ private:
 	 */
 	void Push(char c);
 
-    void FeedSingleQuotedChar(char c);
+	void FeedSingleQuotedChar(char c);
 
-    void FeedDoublyQuotedChar(char c);
+	void FeedDoublyQuotedChar(char c);
 
-    void FeedUnquotedChar(char c);
+	void FeedUnquotedChar(char c);
 };
 
 } // namespace Playd
